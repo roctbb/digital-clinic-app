@@ -355,11 +355,11 @@ export default {
     directives: {mask},
     data() {
         return {
-            endpoint: "http://localhost:8000/api/",
+            endpoint: "https://medsenger.ru/api/",
             stage: 0,
             is_loading: false,
             error_fields: new Set(),
-            dc_id: 1,
+            dc_id: 947,
             order: {
                 consent: false,
                 phone: "",
