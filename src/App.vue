@@ -35,7 +35,7 @@
                                 </div>
 
                                 <div class="field">
-                                    <label class="label">Номер телефона</label>
+                                    <label class="label required">Номер телефона</label>
                                     <div class="control has-icons-left">
                                         <input @input="clearError('phone')" class="input"
                                                :class="{'is-success': phoneCorrect(), 'is-danger': error_fields.has('phone')}"
@@ -131,9 +131,6 @@
                                         совпадает с
                                         отправленным.</p>
 
-                                    <p class="help is-danger" v-show="error_fields.has('general')">Ошибка загрузки,
-                                        пожалуйста свяжитесь с нами по адресу support@medsenger.ru</p>
-
                                 </div>
 
                                 <div class="field has-text-centered">
@@ -144,11 +141,17 @@
                                         </button>
                                     </div>
                                 </div>
+
+                                <div class="block has-text-centered">
+                                    <p class="help is-danger" v-show="error_fields.has('general')">Ошибка загрузки,
+                                        пожалуйста свяжитесь с нами по адресу support@medsenger.ru</p>
+                                </div>
                             </div>
 
                             <div class="content" v-if="stage==3">
                                 <div class="notification is-warning">
-                                    После завершения оплаты, обязательно нажмите на кнопку <strong>Вернуться на сайт</strong>!
+                                    После завершения оплаты, обязательно нажмите на кнопку <strong>Вернуться на
+                                    сайт</strong>!
                                 </div>
 
                                 <div class="block">
@@ -169,6 +172,153 @@
                                 <div class="block">
                                     <div class="field">
                                         <button class="button is-link" @click="pay()">Оплатить</button>
+                                    </div>
+                                </div>
+
+                                <div class="block has-text-centered">
+                                    <p class="help is-danger" v-show="error_fields.has('general')">Ошибка загрузки,
+                                        пожалуйста свяжитесь с нами по адресу support@medsenger.ru</p>
+                                </div>
+                            </div>
+
+                            <div class="content" v-if="stage==4">
+
+                                <div class="notification is-info" v-show="error_fields.has('contract-exists')">
+                                    <div class="block">
+                                        Отлично, Ваша консультация оплачена, осталось только создать аккаунт в
+                                        Medsenger.
+                                    </div>
+                                </div>
+
+                                <div class="field">
+                                    <label class="label required">ФИО</label>
+                                    <div class="control has-icons-left">
+                                        <input @input="clearError('name')" class="input"
+                                               :class="{'is-success': filled('name'), 'is-danger': error_fields.has('name')}"
+                                               type="text" placeholder="Фамилия Имя Отчество"
+                                               v-model="order.name">
+                                        <span class="icon is-small is-left"><i class="fa-solid fa-person"></i></span>
+                                    </div>
+
+                                    <p class="help is-danger" v-show="error_fields.has('name')">Укажите как вас
+                                        зовут</p>
+
+                                </div>
+
+                                <div class="field">
+                                    <label class="label required">Придумайте пароль</label>
+                                    <div class="control has-icons-left">
+                                        <input @input="clearError('password')" class="input"
+                                               :class="{'is-success': passwordCorrect(), 'is-danger': error_fields.has('password')}"
+                                               type="password"
+                                               v-model="order.password">
+                                        <span class="icon is-small is-left"><i class="fa-solid fa-key"></i></span>
+                                    </div>
+
+                                    <p class="help is-danger" v-show="error_fields.has('password')">Укажите пароль, как
+                                        минимум 6 символов</p>
+
+                                </div>
+
+                                <div class="field">
+                                    <label class="label required">Повторите пароль</label>
+                                    <div class="control has-icons-left">
+                                        <input @input="clearError('password_confirm')" class="input"
+                                               :class="{'is-success': passwordConfirmed(), 'is-danger': error_fields.has('password-confirm')}"
+                                               type="password" v-model="order.password_confirm">
+                                        <span class="icon is-small is-left"><i class="fa-solid fa-key"></i></span>
+                                    </div>
+
+                                    <p class="help is-danger" v-show="error_fields.has('password-confirm')">Пароли не
+                                        совпадают</p>
+
+                                </div>
+
+                                <div class="field">
+                                    <label class="label required">Дата рождения</label>
+                                    <div class="control has-icons-left">
+                                        <input @input="clearError('birthday')" class="input"
+                                               :class="{'is-success': birthdayCorrect(), 'is-danger': error_fields.has('birthday')}"
+                                               type="tel" placeholder="30.12.1970"
+                                               v-mask="'##.##.####'" v-model="order.birthday">
+                                        <span class="icon is-small is-left"><i
+                                            class="fa-solid fa-calendar-day"></i></span>
+                                    </div>
+
+                                    <p class="help is-danger" v-show="error_fields.has('birthday')">Укажите дату
+                                        рождения</p>
+
+                                </div>
+
+                                <div class="field">
+                                    <label class="label required">Пол</label>
+                                    <div class="control">
+                                        <div class="select">
+                                            <select v-model="order.sex">
+                                                <option value="male" selected>Мужской</option>
+                                                <option value="female">Женский</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="field has-text-centered">
+                                    <div class="control">
+                                        <button class="button is-link" :class="{'is-loading': is_loading}"
+                                                @click="next()">
+                                            Готово
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="block has-text-centered">
+                                    <p class="help is-danger" v-show="error_fields.has('general')">Ошибка загрузки,
+                                        пожалуйста свяжитесь с нами по адресу support@medsenger.ru</p>
+                                </div>
+                            </div>
+
+                            <div class="content" v-if="stage==5">
+                                <div class="notification is-success">
+                                    <strong>Ваша консультация открыта!</strong> Осталось только скачать приложение...
+                                </div>
+
+                                <div class="block">
+                                    <label class="label">Логин</label>
+                                    <div class="control">
+                                        {{ preparedPhone }}
+                                    </div>
+                                </div>
+
+                                <div class="block">
+
+                                    <label class="label">Пароль</label>
+                                    <div class="control">
+                                        Указанный при регистрации
+                                    </div>
+                                </div>
+                                <div class="block">
+                                    <div class="field">
+                                        <a class="button" href="https://appsto.re/ru/nOT_fb.i">Medsenger для iOS</a>
+                                    </div>
+
+                                    <div class="field">
+                                        <a class="button"
+                                           href="https://play.google.com/store/apps/details?id=ru.medsenger.patient">Medsenger
+                                            для Android</a>
+                                    </div>
+
+                                    <div class="field">
+                                        <a class="button" href="https://medsenger.ru">Веб-версия</a>
+                                    </div>
+                                </div>
+                                <div class="block">
+                                    <div class="notification is-info">
+                                        <p>P.S. Чтобы получать уведомления об ответах врача по электронной почте, Вы
+                                            можете указать <strong>email</strong> в настройках.</p>
+
+                                        <p>Если Вы не помните пароль, воспользуйтесь восстановлением пароля в
+                                            приложении.</p>
                                     </div>
                                 </div>
                             </div>
@@ -212,7 +362,8 @@ export default {
             dc_id: 1,
             order: {
                 consent: false,
-                phone: ""
+                phone: "",
+                sex: "male"
             },
             ipay: window.IPAY
         }
@@ -233,32 +384,90 @@ export default {
                     amount: this.order.price,
                     currency: 'RUB',
                     order_number: this.order.id,
-                    description: 'Консультация врача ' +this.order.doctor.name + ' в Цифровой Клинике'
+                    description: 'Консультация врача ' + this.order.doctor.name + ' в Цифровой Клинике'
                 },
                 async (answer) => {
-                    let result = await axios.post(this.endpoint + "digital_clinic/order/pay", {doctor_id: this.order.doctor.id, phone: this.order.phone, sber_answer: answer})
+                    try {
+                        await axios.post(this.endpoint + "digital_clinic/order/pay", {
+                            doctor_id: this.order.doctor.id,
+                            phone: this.order.phone,
+                            sber_answer: answer
+                        })
 
-                    if (result.status != 200) {
-                        this.general_error(result)
-                    }
-                    else {
                         if (this.order.user_exists) {
-                            this.stage = 6
+                            this.finishOrder()
+                        } else {
+                            this.stage = 4
                         }
-                        else {
-                            this.stage = 5
-                        }
+                    } catch (error) {
+                        this.general_error(error)
                     }
+
+                    this.is_loading = false;
                 },
                 (order) => {
                     console.log(order)
                 })
         },
+        finishOrder: async function () {
+            try {
+                let result = await axios.post(this.endpoint + "digital_clinic/order/finish", {
+                    doctor_id: this.order.doctor.id,
+                    phone: this.order.phone,
+                    promocode: this.order.promocode,
+                    name: this.order.name,
+                    birthday: this.order.birthday,
+                    sex: this.order.sex,
+                    code: this.order.code,
+                    type: this.order.type,
+                    password: this.order.password
+                })
+
+
+                if (result.data.status != "ok") {
+                    this.general_error(result)
+                } else {
+                    this.stage = 5
+                }
+            } catch (e) {
+                this.general_error(e)
+            }
+        },
+        passwordCorrect: function () {
+            return this.order.password && this.order.password.length > 5
+        },
+        passwordConfirmed: function () {
+            return this.order.password && this.order.password == this.order.password_confirm
+        },
         phoneCorrect: function () {
             return this.order.phone && this.preparedPhone.length == 12;
         },
+        birthdayCorrect: function () {
+            let birthday = this.order.birthday
+
+            if (!birthday) {
+                return false
+            }
+
+            let regexVar = /^([0-9]{2})\.([0-9]{2})\.([0-9]{4})$/;
+            let regexVarTest = regexVar.test(birthday);
+            let userBirthDate = new Date(birthday.replace(regexVar, "$3-$2-$1"));
+
+            console.log(regexVar, regexVarTest, userBirthDate)
+
+            if (!regexVarTest) { // Test this before the other tests
+                return false
+            } else if (isNaN(userBirthDate)) {
+                return false
+            }
+
+            return true
+        },
         codeCorrect: function () {
             return this.order.code && this.order.code.length == 4;
+        },
+        filled: function (field) {
+            return this.order[field] && this.order[field].length > 0
         },
         clearError: function (field) {
             this.error_fields.delete(field)
@@ -306,6 +515,32 @@ export default {
                 }
             }
 
+            if (this.stage == 4) {
+                if (!this.filled('name')) {
+                    this.error_fields.add('name')
+                } else {
+                    this.error_fields.delete('name')
+                }
+
+                if (!this.birthdayCorrect()) {
+                    this.error_fields.add('birthday')
+                } else {
+                    this.error_fields.delete('birthday')
+                }
+
+                if (!this.passwordCorrect()) {
+                    this.error_fields.add('password')
+                } else {
+                    this.error_fields.delete('password')
+                }
+
+                if (!this.passwordConfirmed()) {
+                    this.error_fields.add('password-confirm')
+                } else {
+                    this.error_fields.delete('password-confirm')
+                }
+            }
+
             return this.error_fields.size == 0
         },
         next: async function () {
@@ -316,15 +551,12 @@ export default {
             this.is_loading = true;
 
             if (this.stage == 1) {
+                try {
+                    let result = await axios.post(this.endpoint + "digital_clinic/phone/check", {
+                        phone: this.preparedPhone,
+                        doctor_id: this.order.doctor.id
+                    })
 
-                let result = await axios.post(this.endpoint + "digital_clinic/phone/check", {
-                    phone: this.preparedPhone,
-                    doctor_id: this.order.doctor.id
-                })
-
-                if (result.status != 200) {
-                    this.general_error(result)
-                } else {
 
                     if (result.data.status == 'ok') {
                         console.log("here", result)
@@ -332,22 +564,23 @@ export default {
                         this.error_fields.delete('contract-exists');
                         this.order.user_exists = result.data.found
 
-                        let verify_result = await axios.post(this.endpoint + "digital_clinic/phone/code", {phone: this.preparedPhone})
+                        try {
+                            await axios.post(this.endpoint + "digital_clinic/phone/code", {phone: this.preparedPhone})
 
-                        if (verify_result.status != 200) {
-                            this.general_error(verify_result)
-                        } else {
                             this.stage = 2
                             this.is_loading = false
                             return;
+                        } catch (e) {
+                            this.general_error(e)
+                            return
                         }
-
                     } else {
                         this.error_fields.add('contract-exists')
                         this.is_loading = false
                     }
+                } catch (e) {
+                    this.general_error(e)
                 }
-
             }
 
             if (this.stage == 2) {
@@ -356,6 +589,10 @@ export default {
                     code: this.order.code
                 }).then(this.process_answer).catch(this.general_error)
                 return;
+            }
+
+            if (this.stage == 4) {
+                this.finishOrder()
             }
         },
         general_error: function (error) {
@@ -382,31 +619,37 @@ export default {
 
                     this.is_loading = true;
 
-                    let result = await axios.post(this.endpoint + "digital_clinic/order/create", {
-                        phone: this.preparedPhone,
-                        code: this.order.code,
-                        doctor_id: this.order.doctor.id,
-                        promocode: this.promocode,
-                        type: this.order.type
-                    })
+                    try {
+                        let result = await axios.post(this.endpoint + "digital_clinic/order/create", {
+                            phone: this.preparedPhone,
+                            code: this.order.code,
+                            doctor_id: this.order.doctor.id,
+                            promocode: this.order.promocode,
+                            type: this.order.type
+                        })
 
-                    this.is_loading = false;
-
-                    if (result.status == 200) {
                         if (result.data.status == 'ok') {
                             if (result.data.state == 'paid') {
-                                this.stage = 4
+                                if (this.order.user_exists) {
+                                    this.finishOrder()
+                                } else {
+                                    this.stage = 4
+                                    this.is_loading = false
+                                }
                                 return
                             } else {
                                 this.stage = 3
                                 this.order.price = result.data.price
                                 this.order.id = result.data.order_id
+                                this.is_loading = false
                                 return
                             }
                         }
-                    } else {
-                        this.general_error(result)
+                    } catch (e) {
+                        this.general_error(e)
                     }
+
+                    this.is_loading = false;
                 }
 
                 if (answer.data.status == 'error') {
@@ -451,6 +694,7 @@ export default {
                     } else {
                         this.error_fields.add('general')
                     }
+
                 }
             }).catch(() => {
                 this.error_fields.add('general')
@@ -484,8 +728,9 @@ export default {
     overflow-y: hidden;
 }
 
-
-/* generated by https://loading.io/ */
-
+.required:after {
+    content: " *";
+    color: red;
+}
 
 </style>
