@@ -50,24 +50,10 @@
                                 </div>
 
                                 <div class="field">
-                                    <label class="label">Промокод</label>
-                                    <div class="control has-icons-left">
-                                        <input @input="clearError('promocode')" class="input"
-                                               :class="{'is-danger': error_fields.has('promocode')}"
-                                               type="text" v-model="order.promocode">
-                                        <span class="icon is-small is-left"><i class="fa-solid fa-percent"></i></span>
-                                    </div>
-
-                                    <p class="help is-danger" v-show="error_fields.has('promocode')">Промокод не
-                                        найден</p>
-
-                                </div>
-
-                                <div class="field">
                                     <div class="control">
                                         <label class="checkbox">
                                             <input type="checkbox" v-model="order.consent">
-                                            Согласен с <a href="#">условиями предоставления услуг</a>
+                                            Согласие с <a href="#">условиями предоставления услуг</a>
                                         </label>
                                     </div>
                                 </div>
@@ -168,6 +154,21 @@
                                         {{ this.order.days }} (дней)
                                     </div>
                                 </div>
+
+                                <div class="field">
+                                    <label class="label">Промокод</label>
+                                    <div class="control has-icons-left">
+                                        <input @input="checkPromocode('promocode')" class="input"
+                                               :class="{'is-danger': error_fields.has('promocode'), 'is-success': promocode_valid}"
+                                               type="text" v-model="order.promocode">
+                                        <span class="icon is-small is-left"><i class="fa-solid fa-percent"></i></span>
+                                    </div>
+
+                                    <p class="help is-danger" v-show="error_fields.has('promocode')">Промокод не
+                                        найден</p>
+
+                                </div>
+
                                 <div class="block">
                                     <div class="field">
                                         <button class="button is-link" @click="pay()">Оплатить</button>
@@ -241,7 +242,7 @@
                                                type="tel" placeholder="30.12.1970"
                                                v-mask="'##.##.####'" v-model="order.birthday">
                                         <span class="icon is-small is-left"><i
-                                            class="fa-solid fa-calendar-day"></i></span>
+                                                class="fa-solid fa-calendar-day"></i></span>
                                     </div>
 
                                     <p class="help is-danger" v-show="error_fields.has('birthday')">Укажите дату
@@ -345,392 +346,423 @@
 
 <script>
 
-import {mask} from 'vue-the-mask'
-import axios from 'axios';
+    import {mask} from 'vue-the-mask'
+    import axios from 'axios';
 
-export default {
-    name: 'App',
-    components: {},
-    directives: {mask},
-    data() {
-        return {
-            endpoint: "https://medsenger.ru/api/",
-            stage: 0,
-            is_loading: false,
-            error_fields: new Set(),
-            dc_id: 947,
-            order: {
-                consent: false,
-                phone: "",
-                sex: "male"
+    export default {
+        name: 'App',
+        components: {},
+        directives: {mask},
+        data() {
+            return {
+                endpoint: "https://medsenger.ru/api/",
+                stage: 0,
+                is_loading: false,
+                error_fields: new Set(),
+                dc_id: 947,
+                order: {
+                    consent: false,
+                    phone: "",
+                    sex: "male"
+                },
+                ipay: window.IPAY
+            }
+        },
+        computed: {
+            preparedPhone: function () {
+                return '+' + this.order.phone.replace(/[^\d]/g, "");
             },
-            ipay: window.IPAY
-        }
-    },
-    computed: {
-        preparedPhone: function () {
-            return '+' + this.order.phone.replace(/[^\d]/g, "");
+            hasGeneralError: function () {
+                return this.error_fields.has('general');
+            }
         },
-        hasGeneralError: function () {
-            return this.error_fields.has('general');
-        }
-    },
-    methods: {
-        pay: function () {
-            let sberpay = window.PAYF
+        methods: {
+            pay: function () {
+                let sberpay = window.PAYF
 
-            sberpay({
-                    amount: this.order.price,
-                    currency: 'RUB',
-                    order_number: this.order.id,
-                    description: 'Консультация врача ' + this.order.doctor.name + ' в Цифровой Клинике'
-                },
-                async (answer) => {
-                    try {
-                        await axios.post(this.endpoint + "digital_clinic/order/pay", {
-                            doctor_id: this.order.doctor.id,
-                            phone: this.order.phone,
-                            sber_answer: answer
-                        })
+                sberpay({
+                        amount: this.order.price,
+                        currency: 'RUB',
+                        order_number: this.order.id,
+                        description: 'Консультация врача ' + this.order.doctor.name + ' в Цифровой Клинике'
+                    },
+                    async (answer) => {
+                        try {
+                            await axios.post(this.endpoint + "digital_clinic/order/pay", {
+                                doctor_id: this.order.doctor.id,
+                                phone: this.order.phone,
+                                sber_answer: answer
+                            })
 
-                        if (this.order.user_exists) {
-                            this.finishOrder()
-                        } else {
-                            this.stage = 4
+                            if (this.order.user_exists) {
+                                this.finishOrder()
+                            } else {
+                                this.stage = 4
+                            }
+                        } catch (error) {
+                            this.general_error(error)
                         }
-                    } catch (error) {
-                        this.general_error(error)
-                    }
 
-                    this.is_loading = false;
-                },
-                (order) => {
-                    console.log(order)
-                })
-        },
-        finishOrder: async function () {
-            try {
-                let result = await axios.post(this.endpoint + "digital_clinic/order/finish", {
-                    doctor_id: this.order.doctor.id,
-                    phone: this.order.phone,
-                    promocode: this.order.promocode,
-                    name: this.order.name,
-                    birthday: this.order.birthday,
-                    sex: this.order.sex,
-                    code: this.order.code,
-                    type: this.order.type,
-                    password: this.order.password
-                })
-
-
-                if (result.data.status != "ok") {
-                    this.general_error(result)
-                } else {
-                    this.stage = 5
-                }
-            } catch (e) {
-                this.general_error(e)
-            }
-        },
-        passwordCorrect: function () {
-            return this.order.password && this.order.password.length > 5
-        },
-        passwordConfirmed: function () {
-            return this.order.password && this.order.password == this.order.password_confirm
-        },
-        phoneCorrect: function () {
-            return this.order.phone && this.preparedPhone.length == 12;
-        },
-        birthdayCorrect: function () {
-            let birthday = this.order.birthday
-
-            if (!birthday) {
-                return false
-            }
-
-            let regexVar = /^([0-9]{2})\.([0-9]{2})\.([0-9]{4})$/;
-            let regexVarTest = regexVar.test(birthday);
-            let userBirthDate = new Date(birthday.replace(regexVar, "$3-$2-$1"));
-
-            console.log(regexVar, regexVarTest, userBirthDate)
-
-            if (!regexVarTest) { // Test this before the other tests
-                return false
-            } else if (isNaN(userBirthDate)) {
-                return false
-            }
-
-            return true
-        },
-        codeCorrect: function () {
-            return this.order.code && this.order.code.length == 4;
-        },
-        filled: function (field) {
-            return this.order[field] && this.order[field].length > 0
-        },
-        clearError: function (field) {
-            this.error_fields.delete(field)
-        },
-        validate: async function () {
-            this.error_fields.delete('contract-exists')
-            this.error_fields.delete('general')
-
-            if (this.stage == 1) {
-                if (this.order.promocode) {
-                    let result = await axios.post(this.endpoint + "digital_clinic/promocode/check", {promocode: this.order.promocode})
-
-                    if (result.data.status == 'error') {
-                        this.error_fields.add('promocode')
-                    } else {
-                        this.error_fields.delete('promocode')
-                    }
-                } else {
-                    this.error_fields.delete('promocode')
-                }
-
-                if (!this.phoneCorrect()) {
-                    this.error_fields.add('phone')
-                } else {
-                    this.error_fields.delete('phone')
-                }
-
-                if (!this.order.consent) {
-                    this.error_fields.add('consent')
-                } else {
-                    this.error_fields.delete('consent')
-                }
-            }
-
-            if (this.stage == 2) {
-                this.error_fields.delete('incorrect-code')
-                this.error_fields.delete('general')
-
-                if (!this.codeCorrect()) {
-                    this.error_fields.add('code')
-                    this.error_fields.add('empty-code')
-                } else {
-                    this.error_fields.delete('code')
-                    this.error_fields.delete('empty-code')
-                }
-            }
-
-            if (this.stage == 4) {
-                if (!this.filled('name')) {
-                    this.error_fields.add('name')
-                } else {
-                    this.error_fields.delete('name')
-                }
-
-                if (!this.birthdayCorrect()) {
-                    this.error_fields.add('birthday')
-                } else {
-                    this.error_fields.delete('birthday')
-                }
-
-                if (!this.passwordCorrect()) {
-                    this.error_fields.add('password')
-                } else {
-                    this.error_fields.delete('password')
-                }
-
-                if (!this.passwordConfirmed()) {
-                    this.error_fields.add('password-confirm')
-                } else {
-                    this.error_fields.delete('password-confirm')
-                }
-            }
-
-            return this.error_fields.size == 0
-        },
-        next: async function () {
-            if (!(await this.validate())) {
-                return;
-            }
-
-            this.is_loading = true;
-
-            if (this.stage == 1) {
+                        this.is_loading = false;
+                    },
+                    (order) => {
+                        console.log(order)
+                    })
+            },
+            finishOrder: async function () {
                 try {
-                    let result = await axios.post(this.endpoint + "digital_clinic/phone/check", {
-                        phone: this.preparedPhone,
-                        doctor_id: this.order.doctor.id
+                    let result = await axios.post(this.endpoint + "digital_clinic/order/finish", {
+                        doctor_id: this.order.doctor.id,
+                        phone: this.order.phone,
+                        promocode: this.order.promocode,
+                        name: this.order.name,
+                        birthday: this.order.birthday,
+                        sex: this.order.sex,
+                        code: this.order.code,
+                        type: this.order.type,
+                        password: this.order.password
                     })
 
 
-                    if (result.data.status == 'ok') {
-                        console.log("here", result)
-
-                        this.error_fields.delete('contract-exists');
-                        this.order.user_exists = result.data.found
-
-                        try {
-                            await axios.post(this.endpoint + "digital_clinic/phone/code", {phone: this.preparedPhone})
-
-                            this.stage = 2
-                            this.is_loading = false
-                            return;
-                        } catch (e) {
-                            this.general_error(e)
-                            return
-                        }
+                    if (result.data.status != "ok") {
+                        this.general_error(result)
                     } else {
-                        this.error_fields.add('contract-exists')
-                        this.is_loading = false
+                        this.stage = 5
                     }
                 } catch (e) {
                     this.general_error(e)
                 }
-            }
+            },
+            passwordCorrect: function () {
+                return this.order.password && this.order.password.length > 5
+            },
+            passwordConfirmed: function () {
+                return this.order.password && this.order.password == this.order.password_confirm
+            },
+            phoneCorrect: function () {
+                return this.order.phone && this.preparedPhone.length == 12;
+            },
+            birthdayCorrect: function () {
+                let birthday = this.order.birthday
 
-            if (this.stage == 2) {
-                axios.post(this.endpoint + "digital_clinic/phone/verify", {
-                    phone: this.preparedPhone,
-                    code: this.order.code
-                }).then(this.process_answer).catch(this.general_error)
-                return;
-            }
-
-            if (this.stage == 4) {
-                this.finishOrder()
-            }
-        },
-        general_error: function (error) {
-            this.is_loading = false;
-            console.log(error);
-            this.error_fields.add('general')
-        },
-        process_answer: async function (answer) {
-            this.is_loading = false;
-
-            console.log(answer)
-
-            if (this.stage == 1) {
-                if (answer.data.status == 'ok') {
-                    this.stage = 2
-                    return
+                if (!birthday) {
+                    return false
                 }
-            }
 
-            if (this.stage == 2) {
-                if (answer.data.status == 'ok') {
-                    this.error_fields.delete('code')
+                let regexVar = /^([0-9]{2})\.([0-9]{2})\.([0-9]{4})$/;
+                let regexVarTest = regexVar.test(birthday);
+                let userBirthDate = new Date(birthday.replace(regexVar, "$3-$2-$1"));
+
+                console.log(regexVar, regexVarTest, userBirthDate)
+
+                if (!regexVarTest) { // Test this before the other tests
+                    return false
+                } else if (isNaN(userBirthDate)) {
+                    return false
+                }
+
+                return true
+            },
+            codeCorrect: function () {
+                return this.order.code && this.order.code.length == 4;
+            },
+            filled: function (field) {
+                return this.order[field] && this.order[field].length > 0
+            },
+            clearError: function (field) {
+                this.error_fields.delete(field)
+            },
+            checkPromocode: function () {
+                this.promocode_valid = false
+
+                axios.post(this.endpoint + "digital_clinic/promocode/apply", {
+                    phone: this.preparedPhone,
+                    code: this.order.code,
+                    doctor_id: this.order.doctor.id,
+                    promocode: this.order.promocode,
+                    type: this.order.type
+                }).then((result) => {
+                    if (result.data.status == 'error') {
+                        this.error_fields.add('promocode')
+                    } else {
+                        this.promocode_valid = true
+                        this.error_fields.delete('promocode')
+
+                        if (result.data.state == 'paid') {
+                            if (this.order.user_exists) {
+                                this.finishOrder()
+                            } else {
+                                this.stage = 4
+                                this.is_loading = false
+                            }
+                            return
+                        } else {
+                            this.order.price = result.data.price
+                        }
+                    }
+                })
+            },
+            validate: async function () {
+                this.error_fields.delete('contract-exists')
+                this.error_fields.delete('general')
+                this.error_fields.delete('promocode')
+
+                if (this.stage == 1) {
+                    if (this.order.promocode) {
+                        let result = await axios.post(this.endpoint + "digital_clinic/promocode/check", {promocode: this.order.promocode})
+
+                        if (result.data.status == 'error') {
+                            this.error_fields.add('promocode')
+                        } else {
+                            this.error_fields.delete('promocode')
+                        }
+                    } else {
+                        this.error_fields.delete('promocode')
+                    }
+
+                    if (!this.phoneCorrect()) {
+                        this.error_fields.add('phone')
+                    } else {
+                        this.error_fields.delete('phone')
+                    }
+
+                    if (!this.order.consent) {
+                        this.error_fields.add('consent')
+                    } else {
+                        this.error_fields.delete('consent')
+                    }
+                }
+
+                if (this.stage == 2) {
                     this.error_fields.delete('incorrect-code')
+                    this.error_fields.delete('general')
 
-                    this.is_loading = true;
+                    if (!this.codeCorrect()) {
+                        this.error_fields.add('code')
+                        this.error_fields.add('empty-code')
+                    } else {
+                        this.error_fields.delete('code')
+                        this.error_fields.delete('empty-code')
+                    }
+                }
 
+                if (this.stage == 4) {
+                    if (!this.filled('name')) {
+                        this.error_fields.add('name')
+                    } else {
+                        this.error_fields.delete('name')
+                    }
+
+                    if (!this.birthdayCorrect()) {
+                        this.error_fields.add('birthday')
+                    } else {
+                        this.error_fields.delete('birthday')
+                    }
+
+                    if (!this.passwordCorrect()) {
+                        this.error_fields.add('password')
+                    } else {
+                        this.error_fields.delete('password')
+                    }
+
+                    if (!this.passwordConfirmed()) {
+                        this.error_fields.add('password-confirm')
+                    } else {
+                        this.error_fields.delete('password-confirm')
+                    }
+                }
+
+                return this.error_fields.size == 0
+            },
+            next: async function () {
+                if (!(await this.validate())) {
+                    return;
+                }
+
+                this.is_loading = true;
+
+                if (this.stage == 1) {
                     try {
-                        let result = await axios.post(this.endpoint + "digital_clinic/order/create", {
+                        let result = await axios.post(this.endpoint + "digital_clinic/phone/check", {
                             phone: this.preparedPhone,
-                            code: this.order.code,
-                            doctor_id: this.order.doctor.id,
-                            promocode: this.order.promocode,
-                            type: this.order.type
+                            doctor_id: this.order.doctor.id
                         })
 
+
                         if (result.data.status == 'ok') {
-                            if (result.data.state == 'paid') {
-                                if (this.order.user_exists) {
-                                    this.finishOrder()
-                                } else {
-                                    this.stage = 4
-                                    this.is_loading = false
-                                }
-                                return
-                            } else {
-                                this.stage = 3
-                                this.order.price = result.data.price
-                                this.order.days = result.data.days
-                                this.order.id = result.data.order_id
+                            console.log("here", result)
+
+                            this.error_fields.delete('contract-exists');
+                            this.order.user_exists = result.data.found
+
+                            try {
+                                await axios.post(this.endpoint + "digital_clinic/phone/code", {phone: this.preparedPhone})
+
+                                this.stage = 2
                                 this.is_loading = false
+                                return;
+                            } catch (e) {
+                                this.general_error(e)
                                 return
                             }
+                        } else {
+                            this.error_fields.add('contract-exists')
+                            this.is_loading = false
                         }
                     } catch (e) {
                         this.general_error(e)
                     }
-
-                    this.is_loading = false;
                 }
 
-                if (answer.data.status == 'error') {
-                    this.error_fields.add('code')
-                    this.error_fields.add('incorrect-code')
+                if (this.stage == 2) {
+                    axios.post(this.endpoint + "digital_clinic/phone/verify", {
+                        phone: this.preparedPhone,
+                        code: this.order.code
+                    }).then(this.process_answer).catch(this.general_error)
+                    return;
                 }
-            }
-        }
-    },
-    mounted() {
-        let doctor_id = parseInt(window.location.pathname.replace('/doctor/', ''));
 
-        if (!doctor_id) {
-            this.error_fields.add('general')
-            console.log('incorrect doctor id')
-        } else {
-            axios.get(this.endpoint + 'client/clinics/' + this.dc_id).then((data) => {
-                let answer = data.data;
+                if (this.stage == 4) {
+                    this.finishOrder()
+                }
+            },
+            general_error: function (error) {
+                this.is_loading = false;
+                console.log(error);
+                this.error_fields.add('general')
+            },
+            process_answer: async function (answer) {
+                this.is_loading = false;
 
-                console.log("got data", answer)
+                console.log(answer)
 
-                if (answer.status != "ok") {
-                    this.error_fields.add('general')
-                } else {
-                    let consulting_doctors = answer.data.consulting_doctors.filter((doctor) => {
-                        return doctor.id == doctor_id
-                    });
-                    let opinion_doctors = answer.data.opinion_doctors.filter((doctor) => {
-                        return doctor.id == doctor_id
-                    });
+                if (this.stage == 1) {
+                    if (answer.data.status == 'ok') {
+                        this.stage = 2
+                        return
+                    }
+                }
 
+                if (this.stage == 2) {
+                    if (answer.data.status == 'ok') {
+                        this.error_fields.delete('code')
+                        this.error_fields.delete('incorrect-code')
 
-                    if (answer.data.opinion_enabled && opinion_doctors.length != 0) {
-                        this.order.type = 'opinion'
-                        this.order.doctor = opinion_doctors[0];
-                        this.stage = 1
-                    } else if (answer.data.consulting_enabled && consulting_doctors.length != 0) {
-                        this.order.type = 'consulting'
-                        this.order.doctor = consulting_doctors[0]
-                        this.stage = 1
-                        this.doctor_id = doctor_id
-                    } else {
-                        this.error_fields.add('general')
+                        this.is_loading = true;
+
+                        try {
+                            let result = await axios.post(this.endpoint + "digital_clinic/order/create", {
+                                phone: this.preparedPhone,
+                                code: this.order.code,
+                                doctor_id: this.order.doctor.id,
+                                promocode: this.order.promocode,
+                                type: this.order.type
+                            })
+
+                            if (result.data.status == 'ok') {
+                                if (result.data.state == 'paid') {
+                                    if (this.order.user_exists) {
+                                        this.finishOrder()
+                                    } else {
+                                        this.stage = 4
+                                        this.is_loading = false
+                                    }
+                                    return
+                                } else {
+                                    this.stage = 3
+                                    this.order.price = result.data.price
+                                    this.order.days = result.data.days
+                                    this.order.id = result.data.order_id
+                                    this.is_loading = false
+                                    return
+                                }
+                            }
+                        } catch (e) {
+                            this.general_error(e)
+                        }
+
+                        this.is_loading = false;
                     }
 
+                    if (answer.data.status == 'error') {
+                        this.error_fields.add('code')
+                        this.error_fields.add('incorrect-code')
+                    }
                 }
-            }).catch(() => {
+            }
+        },
+        mounted() {
+            let doctor_id = parseInt(window.location.pathname.replace('/doctor/', ''));
+
+            if (!doctor_id) {
                 this.error_fields.add('general')
-            });
+                console.log('incorrect doctor id')
+            } else {
+                axios.get(this.endpoint + 'client/clinics/' + this.dc_id).then((data) => {
+                    let answer = data.data;
+
+                    console.log("got data", answer)
+
+                    if (answer.status != "ok") {
+                        this.error_fields.add('general')
+                    } else {
+                        let consulting_doctors = answer.data.consulting_doctors.filter((doctor) => {
+                            return doctor.id == doctor_id
+                        });
+                        let opinion_doctors = answer.data.opinion_doctors.filter((doctor) => {
+                            return doctor.id == doctor_id
+                        });
+
+
+                        if (answer.data.opinion_enabled && opinion_doctors.length != 0) {
+                            this.order.type = 'opinion'
+                            this.order.doctor = opinion_doctors[0];
+                            this.stage = 1
+                        } else if (answer.data.consulting_enabled && consulting_doctors.length != 0) {
+                            this.order.type = 'consulting'
+                            this.order.doctor = consulting_doctors[0]
+                            this.stage = 1
+                            this.doctor_id = doctor_id
+                        } else {
+                            this.error_fields.add('general')
+                        }
+
+                    }
+                }).catch(() => {
+                    this.error_fields.add('general')
+                });
+            }
         }
     }
-}
 </script>
 
 <style>
-#app {
-    font-family: Avenir, Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-align: center;
-    color: #2c3e50;
-    margin-top: 60px;
-}
+    #app {
+        font-family: Avenir, Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-align: center;
+        color: #2c3e50;
+        margin-top: 60px;
+    }
 
-.container {
-    min-height: 100vh;
-    width: 100vw;
-}
+    .container {
+        min-height: 100vh;
+        width: 100vw;
+    }
 
-.main-block {
-    max-width: 400px;
-    margin: 0 auto;
-}
+    .main-block {
+        max-width: 400px;
+        margin: 0 auto;
+    }
 
-.media-content {
-    overflow-y: hidden;
-}
+    .media-content {
+        overflow-y: hidden;
+    }
 
-.required:after {
-    content: " *";
-    color: red;
-}
+    .required:after {
+        content: " *";
+        color: red;
+    }
 
 </style>
