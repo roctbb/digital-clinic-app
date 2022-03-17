@@ -165,8 +165,7 @@
 
                                     <label class="label">Длительность консультации</label>
                                     <div class="control">
-                                        <span v-if="order.type == 'consulting'">2 недели</span>
-                                        <span v-else>3 дня</span>
+                                        {{ this.order.days }} (дней)
                                     </div>
                                 </div>
                                 <div class="block">
@@ -640,6 +639,7 @@ export default {
                             } else {
                                 this.stage = 3
                                 this.order.price = result.data.price
+                                this.order.days = result.data.days
                                 this.order.id = result.data.order_id
                                 this.is_loading = false
                                 return
