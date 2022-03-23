@@ -96,7 +96,7 @@
                                     </div>
 
                                     <div class="block">
-                                        <strong><a href="#" @click="stage = 1">Неправильный номер?</a></strong>
+                                        <strong><a href="#" @click="stage = 1">Не получили SMS?</a></strong>
                                     </div>
                                 </div>
 
@@ -186,23 +186,8 @@
                                 <div class="notification is-info" v-show="error_fields.has('contract-exists')">
                                     <div class="block">
                                         Отлично, Ваша консультация оплачена, осталось только создать аккаунт в
-                                        Medsenger.
+                                        Medsenger. Логином будет Ваш номер телефона.
                                     </div>
-                                </div>
-
-                                <div class="field">
-                                    <label class="label required">ФИО</label>
-                                    <div class="control has-icons-left">
-                                        <input @input="clearError('name')" class="input"
-                                               :class="{'is-success': filled('name'), 'is-danger': error_fields.has('name')}"
-                                               type="text" placeholder="Фамилия Имя Отчество"
-                                               v-model="order.name">
-                                        <span class="icon is-small is-left"><i class="fa-solid fa-person"></i></span>
-                                    </div>
-
-                                    <p class="help is-danger" v-show="error_fields.has('name')">Укажите как вас
-                                        зовут</p>
-
                                 </div>
 
                                 <div class="field">
@@ -235,33 +220,55 @@
                                 </div>
 
                                 <div class="field">
-                                    <label class="label required">Дата рождения</label>
+                                    <label class="label required">ФИО</label>
                                     <div class="control has-icons-left">
-                                        <input @input="clearError('birthday')" class="input"
-                                               :class="{'is-success': birthdayCorrect(), 'is-danger': error_fields.has('birthday')}"
-                                               type="tel" placeholder="30.12.1970"
-                                               v-mask="'##.##.####'" v-model="order.birthday">
-                                        <span class="icon is-small is-left"><i
-                                                class="fa-solid fa-calendar-day"></i></span>
+                                        <input @input="clearError('name')" class="input"
+                                               :class="{'is-success': filled('name'), 'is-danger': error_fields.has('name')}"
+                                               type="text" placeholder="Фамилия Имя Отчество"
+                                               v-model="order.name">
+                                        <span class="icon is-small is-left"><i class="fa-solid fa-person"></i></span>
                                     </div>
 
-                                    <p class="help is-danger" v-show="error_fields.has('birthday')">Укажите дату
-                                        рождения</p>
+                                    <p class="help is-danger" v-show="error_fields.has('name')">Укажите как вас
+                                        зовут</p>
 
                                 </div>
 
-                                <div class="field">
-                                    <label class="label required">Пол</label>
-                                    <div class="control">
-                                        <div class="select">
-                                            <select v-model="order.sex">
-                                                <option value="male" selected>Мужской</option>
-                                                <option value="female">Женский</option>
-                                            </select>
+                                <div class="columns">
+                                    <div class="column is-7">
+                                        <div class="field">
+                                            <label class="label required">Дата рождения</label>
+                                            <div class="control has-icons-left">
+                                                <input @input="clearError('birthday')" class="input"
+                                                       :class="{'is-success': birthdayCorrect(), 'is-danger': error_fields.has('birthday')}"
+                                                       type="tel" placeholder="30.12.1970"
+                                                       v-mask="'##.##.####'" v-model="order.birthday">
+                                                <span class="icon is-small is-left"><i
+                                                        class="fa-solid fa-calendar-day"></i></span>
+                                            </div>
+
+                                            <p class="help is-danger" v-show="error_fields.has('birthday')">Укажите дату
+                                                рождения</p>
+
                                         </div>
                                     </div>
 
+                                    <div class="column is-5">
+                                        <div class="field">
+                                            <label class="label required">Пол</label>
+                                            <div class="control">
+                                                <div class="select">
+                                                    <select v-model="order.sex">
+                                                        <option value="male" selected>Мужской</option>
+                                                        <option value="female">Женский</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
                                 </div>
+
 
                                 <div class="field has-text-centered">
                                     <div class="control">
@@ -280,45 +287,46 @@
 
                             <div class="content" v-if="stage==5">
                                 <div class="notification is-success">
-                                    <strong>Ваша консультация открыта!</strong> Осталось только скачать приложение...
+                                    <strong>Ваша консультация открыта!</strong> Скачайте мобильное приложение или используйте веб-браузер.
                                 </div>
 
-                                <div class="block">
+                                <div class="field">
                                     <label class="label">Логин</label>
                                     <div class="control">
                                         {{ preparedPhone }}
                                     </div>
                                 </div>
-
                                 <div class="block">
+                                    <div class="field">
 
-                                    <label class="label">Пароль</label>
-                                    <div class="control">
-                                        Указанный при регистрации
+                                        <label class="label">Пароль</label>
+                                        <div class="control">
+                                            Указанный при регистрации
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="block">
-                                    <div class="field">
-                                        <a class="button" href="https://appsto.re/ru/nOT_fb.i">Medsenger для iOS</a>
+                                    <div class="columns is-mobile">
+                                        <div class="column is-half is-6-mobile" style="padding: 0;">
+                                            <a data-ng-if="clients=='doctors'"
+                                               href="https://play.google.com/store/apps/details?id=ru.medsenger.patient"
+                                               target="_blank"><img src="https://medsenger.ru/images/google-play-badge.png"
+                                                                    class="h-50" alt=""/></a>
+                                        </div>
+                                        <div class="column is-half is-6-mobile" style="padding: 0;">
+                                            <a data-ng-if="clients=='doctors'" href="https://appsto.re/ru/nOT_fb.i" target="_blank"><img
+                                                    src="https://medsenger.ru/images/appstore-badge.png" class="h-50" alt=""/></a>
+                                        </div>
                                     </div>
 
                                     <div class="field">
-                                        <a class="button"
-                                           href="https://play.google.com/store/apps/details?id=ru.medsenger.patient">Medsenger
-                                            для Android</a>
-                                    </div>
-
-                                    <div class="field">
-                                        <a class="button" href="https://medsenger.ru">Веб-версия</a>
+                                        <a class="button is-medium is-fullwidth" href="https://medsenger.ru">Веб-версия</a>
                                     </div>
                                 </div>
                                 <div class="block">
                                     <div class="notification is-info">
                                         <p>P.S. Чтобы получать уведомления об ответах врача по электронной почте, Вы
                                             можете указать <strong>email</strong> в настройках.</p>
-
-                                        <p>Если Вы не помните пароль, воспользуйтесь восстановлением пароля в
-                                            приложении.</p>
                                     </div>
                                 </div>
                             </div>
@@ -726,8 +734,9 @@
                         } else {
                             this.error_fields.add('general')
                         }
-
                     }
+
+
                 }).catch(() => {
                     this.error_fields.add('general')
                 });
