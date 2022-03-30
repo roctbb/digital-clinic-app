@@ -34,6 +34,21 @@
                                     </div>
                                 </div>
 
+                                <div class="block">
+                                    <label class="label">Стоимость консультации</label>
+                                    <div class="control">
+                                        {{ order.doctor.dc_price * order.doctor.minimum_days }} (руб.)
+                                    </div>
+                                </div>
+
+                                <div class="block">
+
+                                    <label class="label">Длительность консультации</label>
+                                    <div class="control">
+                                        {{ order.doctor.minimum_days }} (дней)
+                                    </div>
+                                </div>
+
                                 <div class="field">
                                     <label class="label required">Номер телефона</label>
                                     <div class="control has-icons-left">
@@ -66,7 +81,7 @@
                                     <div class="control">
                                         <button class="button is-link" :class="{'is-loading': is_loading}"
                                                 @click="next()">
-                                            Проконсультироваться
+                                            Обратиться
                                         </button>
                                     </div>
                                 </div>
@@ -103,7 +118,7 @@
                                 <div class="field">
                                     <label class="label">Код подтверждения</label>
                                     <div class="control has-icons-left">
-                                        <input @input="clearError('code')" class="input"
+                                        <input @input="checkCode()" class="input"
                                                :class="{'is-success': codeCorrect(), 'is-danger': error_fields.has('code')}"
                                                type="tel" placeholder="1234"
                                                v-mask="'####'" v-model="order.code">
@@ -167,6 +182,8 @@
                                     <p class="help is-danger" v-show="error_fields.has('promocode')">Промокод не
                                         найден</p>
 
+                                    <p class="help">Укажите, если есть.</p>
+
                                 </div>
 
                                 <div class="block">
@@ -178,6 +195,23 @@
                                 <div class="block has-text-centered">
                                     <p class="help is-danger" v-show="error_fields.has('general')">Ошибка загрузки,
                                         пожалуйста свяжитесь с нами по адресу support@medsenger.ru</p>
+                                </div>
+
+                                <div class="block is-size-7 has-text-grey-light has-text-left">
+                                    <p>Оплата происходит через ПАО СБЕРБАНК с использованием банковских карт следующих платёжных систем:</p>
+                                    <p class="has-text-centered"><img class="mx-1" style="height: 15px;" src="@/assets/mir.png"/><img class="mx-1" style="height: 15px;" src="@/assets/visa.png"/>
+                                        <img style="height: 15px;" class="mx-1" src="@/assets/mastercard.png"/><img class="mx-1" style="height: 15px;" src="@/assets/jcb.png"/></p>
+                                    <p>Для оплаты (ввода реквизитов Вашей карты) Вы будете перенаправлены на платёжный шлюз ПАО СБЕРБАНК. Соединение с
+                                        платёжным шлюзом и передача информации осуществляется в защищённом режиме с использованием протокола
+                                        шифрования SSL. В случае если Ваш банк поддерживает технологию безопасного проведения интернет-платежей
+                                        Verified By Visa, MasterCard SecureCode, MIR Accept, J-Secure, для проведения платежа также может
+                                        потребоваться ввод специального пароля.</p>
+
+                                    <p>Настоящий сайт поддерживает 256-битное шифрование. Конфиденциальность сообщаемой персональной информации
+                                        обеспечивается ПАО СБЕРБАНК. Введённая информация не будет предоставлена третьим лицам за исключением случаев,
+                                        предусмотренных законодательством РФ. Проведение платежей по банковским картам осуществляется в строгом
+                                        соответствии с требованиями платёжных систем МИР, Visa Int., MasterCard Europe Sprl, JCB.</p>
+
                                 </div>
                             </div>
 
@@ -274,7 +308,7 @@
                                     <div class="control">
                                         <button class="button is-link" :class="{'is-loading': is_loading}"
                                                 @click="next()">
-                                            Готово
+                                            Завершение регистрации
                                         </button>
                                     </div>
                                 </div>
@@ -696,6 +730,12 @@
                         this.error_fields.add('code')
                         this.error_fields.add('incorrect-code')
                     }
+                }
+            },
+            checkCode: function () {
+                this.clearError('code');
+                if (this.order.code >= 1000) {
+                    this.next()
                 }
             }
         },
