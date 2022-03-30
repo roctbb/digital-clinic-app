@@ -188,7 +188,9 @@
 
                                 <div class="block">
                                     <div class="field">
-                                        <button class="button is-link" @click="pay()">Оплатить</button>
+                                        <button class="button is-link" @click="pay()" :disabled="sberpay == undefined">Оплатить</button>
+
+                                        <p class="help" v-if="sberpay == undefined">На данным момент оплата консультации доступна только на территории России. Если вы используете VPN, отключите его и обновите страницу.</p>
                                     </div>
                                 </div>
 
@@ -419,10 +421,10 @@
             }
         },
         methods: {
+            sberpay: window.PAYF,
             pay: function () {
-                let sberpay = window.PAYF
 
-                sberpay({
+                this.sberpay({
                         amount: this.order.price,
                         currency: 'RUB',
                         order_number: this.order.id,
