@@ -428,7 +428,7 @@
                         amount: this.order.price,
                         currency: 'RUB',
                         order_number: this.order.id,
-                        description: 'Консультация врача ' + this.order.doctor.name + ' в Цифровой Клинике'
+                        description: 'Добровольное пожертвование на ведение уставной деятельности Ассоциации НБМЗ'
                     },
                     async (answer) => {
                         try {
