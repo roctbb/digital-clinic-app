@@ -4,9 +4,7 @@
         <div class="columns is-centered">
             <div class="column is-12 main-block">
                 <div class="card">
-
                     <div class="card-content">
-
                         <div v-if="stage > 0">
                             <div class="media">
                                 <div class="media-left">
