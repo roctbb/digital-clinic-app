@@ -14,12 +14,15 @@
                                     </figure>
                                 </div>
                                 <div class="media-content has-text-left">
-                                    <p class="title is-4">{{ order.doctor.name }}</p>
+                                    <p class="title is-4"><a :href="order.doctor.info_url" target="_blank" v-if="order.doctor.info_url">{{ order.doctor.name }}</a><span v-else>{{ order.doctor.name }}</span></p>
                                     <p class="subtitle is-6">{{ order.doctor.specialty }}</p>
                                 </div>
                             </div>
 
                             <div class="content" v-if="stage==1">
+                                <div class="notification" v-show="!error_fields.has('contract-exists') && order.doctor.description">
+                                    <div class="block is-size-7" v-html="order.doctor.description"></div>
+                                </div>
 
                                 <div class="notification is-info" v-show="error_fields.has('contract-exists')">
                                     <div class="block">
@@ -740,7 +743,19 @@
             }
         },
         mounted() {
-            let doctor_id = parseInt(window.location.pathname.replace('/doctor/', ''));
+            let url_parts = window.location.pathname.split('/')
+
+            if (url_parts.length < 3)
+            {
+                this.error_fields.add('general')
+                console.log('incorrect N parts')
+                return;
+            }
+
+            let doctor_id = parseInt(url_parts[2])
+            let type = url_parts[1]
+
+            console.log('type is', type)
 
             if (!doctor_id) {
                 this.error_fields.add('general')
@@ -762,11 +777,11 @@
                         });
 
 
-                        if (answer.data.opinion_enabled && opinion_doctors.length != 0) {
+                        if (answer.data.opinion_enabled && opinion_doctors.length != 0 && type == 'opinion') {
                             this.order.type = 'opinion'
                             this.order.doctor = opinion_doctors[0];
                             this.stage = 1
-                        } else if (answer.data.consulting_enabled && consulting_doctors.length != 0) {
+                        } else if (answer.data.consulting_enabled && consulting_doctors.length != 0 && type != 'opinion') {
                             this.order.type = 'consulting'
                             this.order.doctor = consulting_doctors[0]
                             this.stage = 1
