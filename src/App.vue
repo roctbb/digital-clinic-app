@@ -69,8 +69,13 @@
                                     <div class="control">
                                         <label class="checkbox">
                                             <input type="checkbox" v-model="order.consent">
-                                            Согласие с <a href="#">условиями предоставления услуг</a>
+                                            Согласие с <strong>условиями предоставления услуг</strong>
                                         </label>
+
+                                        <ul class="has-text-left" style="font-size: 0.9rem;">
+                                            <li v-for="template in templates" v-bind:key="template.id"><a :href="endpoint + 'client/template/' + template.id" target="_blank">{{ template.name }}</a></li>
+                                            <li v-if="order.doctor.dc_oferta_url"><a :href="order.doctor.dc_oferta_url" target="_blank">Соглашение (оферта) об оказании информационных услуг {{ order.doctor.name }}</a></li>
+                                        </ul>
                                     </div>
                                 </div>
 
@@ -410,7 +415,8 @@
                     phone: "",
                     sex: "male"
                 },
-                ipay: window.IPAY
+                ipay: window.IPAY,
+                templates: []
             }
         },
         computed: {
@@ -781,11 +787,13 @@
                             this.order.type = 'opinion'
                             this.order.doctor = opinion_doctors[0];
                             this.stage = 1
+                            this.templates = answer.data.opinion_templates;
                         } else if (answer.data.consulting_enabled && consulting_doctors.length != 0 && type != 'opinion') {
                             this.order.type = 'consulting'
                             this.order.doctor = consulting_doctors[0]
                             this.stage = 1
                             this.doctor_id = doctor_id
+                            this.templates = answer.data.consulting_templates;
                         } else {
                             this.error_fields.add('general')
                         }
