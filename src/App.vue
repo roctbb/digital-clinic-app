@@ -44,7 +44,7 @@
 
                                 <div class="block">
 
-                                    <label class="label">Длительность консультации</label>
+                                    <label class="label">Срок действия абонемента</label>
                                     <div class="control">
                                         {{ order.doctor.minimum_days }} (дней)
                                     </div>
