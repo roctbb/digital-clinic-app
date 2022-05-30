@@ -435,7 +435,7 @@
                         amount: this.order.price,
                         currency: 'RUB',
                         order_number: this.order.id,
-                        description: 'Добровольное пожертвование на ведение уставной деятельности Ассоциации НБМЗ'
+                        description: 'Оплата в счет исполнения НБМЗ агентского договора на консультационные услуги Специалиста'
                     },
                     async (answer) => {
                         try {
